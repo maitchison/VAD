@@ -38,5 +38,24 @@ end
 
 sig = reshape(in,sigLength,1);      % convert input to column vector
 
-% gammatone filtering using FFTFILT
-r = fftfilt(gt',repmat(sig,1,numChan))';
+isOctave = exist('OCTAVE_VERSION', 'builtin') ~= 0;
+
+if isOctave    
+    % this is quite a bit slower, but will work in Octave
+    [cols, rows] = size(gt);
+
+    % just want to get the dims
+    x = fftfilt(gt(1)',sig)';
+    [one, features] = size(x);
+
+    r0 = zeros([cols, features]);
+
+    for col = 1:cols
+      r0(col,:) = fftfilt(gt(col,:)',sig)';
+    end
+    
+    r = r0;
+else
+     % gammatone filtering using FFTFILT
+    r = fftfilt(gt',repmat(sig,1,numChan))';   
+end
